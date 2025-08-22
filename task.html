@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task Page</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <nav style="width: 100%; background: none; padding: 1em 0;">
+        <ul style="list-style: none; display: flex; justify-content: center; margin: 0; padding: 0;">
+            <li><a href="Home.html" style="text-decoration: none; color: #CADCAE; font-size: 18px;">Home</a></li>
+            <li><a href="About.html" style="text-decoration: none; color: #CADCAE; font-size: 18px; margin-left: 2em;">About</a></li>
+        </ul>
+    </nav>
+    <h1 style="text-align: center; margin-top: 40px; color: #37353E;">Task board</h1>
+    <h1 id="currentDate" style="text-align: center; color: #37353E;"></h1>
+    <div class="main-content">
+        <div class="box-row">
+            <div class="task-box" id="todoBox">
+                <h2>To Do (<span id="todoCount">0</span>)</h2>
+                <ul id="todoList" style="width: 100%; padding: 0; list-style: none;"></ul>
+                <input type="text" id="taskInput" placeholder="Add a new task" required style="padding: 8px; font-size: 1em; border-radius: 8px; border: 1px solid #CADCAE; margin-top: 16px; width: 90%;">
+            </div>
+            <div class="task-box" id="progressBox">
+                <h2>In Progress (<span id="progressCount">0</span>)</h2>
+                <ul id="progressList" style="width: 100%; padding: 0; list-style: none;"></ul>
+            </div>
+            <div class="task-box" id="doneBox">
+                <h2>Done!! (<span id="doneCount">0</span>)</h2>
+                <ul id="doneList" style="width: 100%; padding: 0; list-style: none;"></ul>
+            </div>
+        </div>
+    </div>
+    <!-- Start fresh: Add your new content here -->
+    <footer style="width: 100%; text-align: center; padding: 1em 0; position: fixed; bottom: 0; left: 0; color: #CADCAE; background: none;">
+        Copyright 2025. All rights reserved
+    </footer>
+    <script>
+        // Display current date in the same format as the heading
+        const dateElem = document.getElementById('currentDate');
+        const options = { year: 'numeric', month: 'long', day: 'numeric' };
+        const today = new Date();
+        dateElem.textContent = today.toLocaleDateString('en-US', options);
+    </script>
+    <script>
+function saveTasks(tasks) {
+    localStorage.setItem('tasks', JSON.stringify(tasks));
+}
+function loadTasks() {
+    return JSON.parse(localStorage.getItem('tasks') || '[]');
+}
+function renderTasks(tasks) {
+    document.getElementById('todoList').innerHTML = '';
+    document.getElementById('progressList').innerHTML = '';
+    document.getElementById('doneList').innerHTML = '';
+    let todoCount = 0, progressCount = 0, doneCount = 0;
+    tasks.forEach((task, idx) => {
+        let li = document.createElement('li');
+        li.textContent = task.text;
+        li.style.padding = '8px';
+        li.style.marginBottom = '8px';
+        li.style.borderRadius = '8px';
+        li.style.cursor = 'pointer';
+        li.style.display = 'flex';
+        li.style.justifyContent = 'center';
+        li.style.alignItems = 'center';
+        li.style.transition = 'background 0.3s, color 0.3s, text-decoration 0.3s';
+        // Color feedback
+        if (task.status === 'todo') {
+            li.style.background = 'rgba(202,220,174,0.08)';
+            li.style.color = '#333';
+            todoCount++;
+        } else if (task.status === 'progress') {
+            li.style.background = '#EDA35A22';
+            li.style.color = '#EDA35A';
+            progressCount++;
+        } else {
+            li.style.background = '#CADCAE22';
+            li.style.color = '#CADCAE';
+            li.style.textDecoration = 'line-through';
+            doneCount++;
+        }
+        li.onclick = function() {
+            if (task.status === 'todo') task.status = 'progress';
+            else if (task.status === 'progress') task.status = 'done';
+            saveTasks(tasks);
+            renderTasks(tasks);
+        };
+        // Add delete button for done box
+        if (task.status === 'done') {
+            let delBtn = document.createElement('button');
+            delBtn.textContent = '🗑';
+            delBtn.title = 'Delete task';
+            delBtn.style.marginLeft = '12px';
+            delBtn.style.background = 'none';
+            delBtn.style.border = 'none';
+            delBtn.style.cursor = 'pointer';
+            delBtn.onclick = function(e) {
+                e.stopPropagation();
+                tasks.splice(idx, 1);
+                saveTasks(tasks);
+                renderTasks(tasks);
+            };
+            li.appendChild(delBtn);
+        }
+        if (task.status === 'todo') document.getElementById('todoList').appendChild(li);
+        else if (task.status === 'progress') document.getElementById('progressList').appendChild(li);
+        else document.getElementById('doneList').appendChild(li);
+    });
+    document.getElementById('todoCount').textContent = todoCount;
+    document.getElementById('progressCount').textContent = progressCount;
+    document.getElementById('doneCount').textContent = doneCount;
+}
+let tasks = loadTasks();
+renderTasks(tasks);
+document.getElementById('taskInput').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') {
+        let val = this.value.trim();
+        if (val) {
+            tasks.push({ text: val, status: 'todo' });
+            saveTasks(tasks);
+            renderTasks(tasks);
+            this.value = '';
+        }
+    }
+});
+</script>
+</body>
+</html>
